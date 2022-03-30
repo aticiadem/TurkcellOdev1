@@ -11,6 +11,7 @@ import android.provider.MediaStore
 import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.WindowManager
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -22,20 +23,23 @@ import com.turkcell.turkcellodev.databinding.SelectImageLocationPopupBinding
 import java.io.File
 import java.io.IOException
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), ImageClick {
 
     private lateinit var binding: ActivityMainBinding
     private val REQ_CODE_CAMERA = 0
     private lateinit var imagePath: String
     private lateinit var imageUri: Uri
-    private lateinit var imageList: ArrayList<Uri>
+    private lateinit var adapter: ImageAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        imageList = ArrayList()
+        adapter = ImageAdapter(this)
+        adapter.imageList = imageListInGeneral
+
+        binding.recyclerView.adapter = adapter
 
         binding.buttonAddImage.setOnClickListener {
             showSelectImagePopup()
@@ -107,7 +111,8 @@ class MainActivity : AppCompatActivity() {
     private var cameraResultLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == RESULT_OK) {
-                imageList.add(imageUri)
+                addNewImageToImageList(imageUri)
+                println("Resim cekildi $imageUri")
             }
         }
 
@@ -176,6 +181,18 @@ class MainActivity : AppCompatActivity() {
         return File.createTempFile("resim", ".jpg", dir).apply {
             imagePath = absolutePath
         }
+    }
+
+    private fun addNewImageToImageList(uri: Uri) {
+        val lastItemId = imageListInGeneral.size
+        println("addNewImageToImageList lastItemId ${imageListInGeneral.size}")
+        imageListInGeneral.add(Image(lastItemId + 1, uri))
+        adapter.imageList = imageListInGeneral
+    }
+
+    override fun onImageClick(image: Image) {
+        // todo we will update here
+        Toast.makeText(this, "Default click toast message", Toast.LENGTH_SHORT).show()
     }
 
 }
