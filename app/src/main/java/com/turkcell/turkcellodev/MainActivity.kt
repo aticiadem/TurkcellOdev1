@@ -28,6 +28,7 @@ class MainActivity : AppCompatActivity(), ImageClick {
 
     private lateinit var binding: ActivityMainBinding
     private val REQ_CODE_CAMERA = 0
+    private val REQ_CODE_GALLERY = 1
     private lateinit var imagePath: String
     private lateinit var imageUri: Uri
     private lateinit var adapter: ImageAdapter
@@ -44,6 +45,22 @@ class MainActivity : AppCompatActivity(), ImageClick {
 
         binding.buttonAddImage.setOnClickListener {
             showSelectImagePopup()
+        }
+    }
+
+    private fun checkGalleryPermission() {
+        val requestList = ArrayList<String>()
+        val permissionState = ContextCompat.checkSelfPermission(this,
+            Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+        if (!permissionState) {
+            requestList.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+        }
+
+        if (requestList.isEmpty()) {
+            // izin var
+            openGallery()
+        } else {
+            requestPermissions(requestList.toTypedArray(), REQ_CODE_GALLERY)
         }
     }
 
@@ -79,6 +96,19 @@ class MainActivity : AppCompatActivity(), ImageClick {
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == RESULT_OK) {
                 addNewImageToImageList(imageUri)
+            }
+        }
+
+    private var galleryResultLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK) {
+                val intentFromResult = result.data
+                if (intentFromResult != null) {
+                    val imageData = intentFromResult.data
+                    if (imageData != null) {
+                        addNewImageToImageList(imageData)
+                    }
+                }
             }
         }
 
@@ -129,6 +159,9 @@ class MainActivity : AppCompatActivity(), ImageClick {
                 REQ_CODE_CAMERA -> {
                     openCamera()
                 }
+                REQ_CODE_GALLERY -> {
+                    openGallery()
+                }
             }
         }
     }
@@ -154,6 +187,11 @@ class MainActivity : AppCompatActivity(), ImageClick {
         imageUri = FileProvider.getUriForFile(this, packageName, file)
         intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
         cameraResultLauncher.launch(intent)
+    }
+
+    private fun openGallery() {
+        val galleryIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        galleryResultLauncher.launch(galleryIntent)
     }
 
     @Throws(IOException::class)
@@ -185,7 +223,8 @@ class MainActivity : AppCompatActivity(), ImageClick {
         }
 
         binding.buttonGallery.setOnClickListener {
-
+            checkGalleryPermission()
+            dialog.dismiss()
         }
 
         dialog.show()
@@ -194,6 +233,7 @@ class MainActivity : AppCompatActivity(), ImageClick {
     private fun addNewImageToImageList(uri: Uri) {
         imageListInGeneral.add(Image(uri))
         adapter.imageList = imageListInGeneral
+        binding.recyclerView.adapter = adapter
     }
 
     private fun showImageInFullScreenMode(image: Image) {
