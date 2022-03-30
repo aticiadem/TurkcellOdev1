@@ -9,4 +9,8 @@
     <string name="cancel">Vazgeç</string>
     <string name="need_permission">İzin Gerekli</string>
     <string name="go_settings_and_allow_permission">Ayarlara gidin ve izinleri onaylayın</string>
+    <string name="alert">Uyarı</string>
+    <string name="are_you_sure_delete_image">Resmi silmek istediğinize emin misiniz?</string>
+    <string name="yes">Evet</string>
+    <string name="deleted">Silindi</string>
 </resources>

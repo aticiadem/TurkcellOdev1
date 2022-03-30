@@ -19,6 +19,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import com.turkcell.turkcellodev.databinding.ActivityMainBinding
+import com.turkcell.turkcellodev.databinding.FullScreenImagePopupBinding
 import com.turkcell.turkcellodev.databinding.SelectImageLocationPopupBinding
 import java.io.File
 import java.io.IOException
@@ -44,32 +45,6 @@ class MainActivity : AppCompatActivity(), ImageClick {
         binding.buttonAddImage.setOnClickListener {
             showSelectImagePopup()
         }
-    }
-
-    private fun showSelectImagePopup() {
-        val dialog = Dialog(this)
-        val binding = SelectImageLocationPopupBinding.inflate(
-            LayoutInflater.from(this)
-        )
-
-        dialog.setContentView(binding.root)
-        dialog.setCancelable(true)
-        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-        dialog.window?.setLayout(
-            WindowManager.LayoutParams.MATCH_PARENT,
-            WindowManager.LayoutParams.MATCH_PARENT
-        )
-
-        binding.buttonCamera.setOnClickListener {
-            checkCameraPermission()
-            dialog.dismiss()
-        }
-
-        binding.buttonGallery.setOnClickListener {
-
-        }
-
-        dialog.show()
     }
 
     private fun checkCameraPermission() {
@@ -100,19 +75,10 @@ class MainActivity : AppCompatActivity(), ImageClick {
         }
     }
 
-    private fun openCamera() {
-        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        val file = createImageFile()
-        imageUri = FileProvider.getUriForFile(this, packageName, file)
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
-        cameraResultLauncher.launch(intent)
-    }
-
     private var cameraResultLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == RESULT_OK) {
                 addNewImageToImageList(imageUri)
-                println("Resim cekildi $imageUri")
             }
         }
 
@@ -167,11 +133,27 @@ class MainActivity : AppCompatActivity(), ImageClick {
         }
     }
 
+    override fun onImageClick(image: Image) {
+        showImageInFullScreenMode(image)
+    }
+
+    override fun onImageLongClick(image: Image) {
+        showImageLongClickAlert(image)
+    }
+
     private fun openSettings() {
         val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
         val uri = Uri.fromParts("package", packageName, null)
         intent.data = uri
         startActivity(intent)
+    }
+
+    private fun openCamera() {
+        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        val file = createImageFile()
+        imageUri = FileProvider.getUriForFile(this, packageName, file)
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
+        cameraResultLauncher.launch(intent)
     }
 
     @Throws(IOException::class)
@@ -183,16 +165,72 @@ class MainActivity : AppCompatActivity(), ImageClick {
         }
     }
 
+    private fun showSelectImagePopup() {
+        val dialog = Dialog(this)
+        val binding = SelectImageLocationPopupBinding.inflate(
+            LayoutInflater.from(this)
+        )
+
+        dialog.setContentView(binding.root)
+        dialog.setCancelable(true)
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialog.window?.setLayout(
+            WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.MATCH_PARENT
+        )
+
+        binding.buttonCamera.setOnClickListener {
+            checkCameraPermission()
+            dialog.dismiss()
+        }
+
+        binding.buttonGallery.setOnClickListener {
+
+        }
+
+        dialog.show()
+    }
+
     private fun addNewImageToImageList(uri: Uri) {
-        val lastItemId = imageListInGeneral.size
-        println("addNewImageToImageList lastItemId ${imageListInGeneral.size}")
-        imageListInGeneral.add(Image(lastItemId + 1, uri))
+        imageListInGeneral.add(Image(uri))
         adapter.imageList = imageListInGeneral
     }
 
-    override fun onImageClick(image: Image) {
-        // todo we will update here
-        Toast.makeText(this, "Default click toast message", Toast.LENGTH_SHORT).show()
+    private fun showImageInFullScreenMode(image: Image) {
+        val dialog = Dialog(this)
+        val binding = FullScreenImagePopupBinding.inflate(
+            LayoutInflater.from(this)
+        )
+
+        dialog.setContentView(binding.root)
+        dialog.setCancelable(true)
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialog.window?.setLayout(
+            WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.MATCH_PARENT
+        )
+
+        binding.imageView.setImageURI(image.uri)
+
+        dialog.show()
+    }
+
+    private fun showImageLongClickAlert(image: Image) {
+        val adb = AlertDialog.Builder(this)
+        adb.setTitle(getString(R.string.alert))
+        adb.setMessage(getString(R.string.are_you_sure_delete_image))
+        adb.setPositiveButton(R.string.yes) { _, _ ->
+            deleteImage(image)
+            Toast.makeText(this, getString(R.string.deleted), Toast.LENGTH_SHORT).show()
+        }
+        adb.setNegativeButton(getString(R.string.cancel)) { _, _ -> }
+        adb.show()
+    }
+
+    private fun deleteImage(image: Image) {
+        imageListInGeneral.remove(image)
+        adapter.imageList = imageListInGeneral
+        binding.recyclerView.adapter = adapter
     }
 
 }

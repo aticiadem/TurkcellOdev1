@@ -38,9 +38,15 @@ class ImageAdapter(
     override fun onBindViewHolder(holder: ImageViewHolder, position: Int) {
         val currentData = imageList[position]
 
-        holder.binding.imageView.setImageURI(currentData.uri)
-        holder.binding.imageView.setOnClickListener {
-            imageClick.onImageClick(currentData)
+        holder.binding.apply {
+            imageView.setImageURI(currentData.uri)
+            imageView.setOnClickListener {
+                imageClick.onImageClick(currentData)
+            }
+            imageView.setOnLongClickListener {
+                imageClick.onImageLongClick(currentData)
+                return@setOnLongClickListener true
+            }
         }
     }
 
