@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">TurkcellOdev</string>
+    <string name="add_image">Resim Ekle</string>
+    <string name="choose_image">Resim Seç</string>
+    <string name="choose_image_location">Resim Konumu Seç</string>
+    <string name="gallery">Galeri</string>
+    <string name="camera">Kamera</string>
 </resources>
