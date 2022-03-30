@@ -5,4 +5,8 @@
     <string name="choose_image_location">Resim Konumu Seç</string>
     <string name="gallery">Galeri</string>
     <string name="camera">Kamera</string>
+    <string name="settings">Ayarlar</string>
+    <string name="cancel">Vazgeç</string>
+    <string name="need_permission">İzin Gerekli</string>
+    <string name="go_settings_and_allow_permission">Ayarlara gidin ve izinleri onaylayın</string>
 </resources>
